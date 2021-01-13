@@ -43,21 +43,14 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 		final Bpmn2ModelerDocumentRootImpl bpmn2ModelerDocumentRootImpl = (Bpmn2ModelerDocumentRootImpl) bpmnModelResource
 				.getContents().get(0);
 
-		System.out.println("bpmn2ModelerDocumentRootImpl: " + bpmn2ModelerDocumentRootImpl);
-
 		final FeatureMap featureMap = bpmn2ModelerDocumentRootImpl.getMixed();
-
-		System.out.println("featureMap: " + featureMap);
 
 		org.eclipse.bpmn2.Process process = null;
 		
 		for (FeatureMap.Entry entry : featureMap) {
-			System.out.println("entry.getValue(): " + entry.getValue());
 			if (entry.getValue() instanceof Definitions) {
 				List<RootElement> rootElements = ((Definitions)entry.getValue()).getRootElements();
-				System.out.println("rootElements: " + rootElements);
 				for (RootElement rootElement : rootElements) {
-					System.out.println("rootElement: " + rootElement);
 					if (rootElement instanceof org.eclipse.bpmn2.Process) {
 						process = (org.eclipse.bpmn2.Process) rootElement;
 					}
