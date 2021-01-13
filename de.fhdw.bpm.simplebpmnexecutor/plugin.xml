@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.ui.popupMenus"> 
+
+	   <objectContribution
+	         id="de.fhdw.bpm.simplebpmnexecutor.action.contribution.popup.object"
+	         objectClass="org.eclipse.core.resources.IFile"
+	         nameFilter="*.bpmn">
+	      <menu
+	         	id="de.fhdw.bpm.simplebpmnexecutor.action.contribution.navigator.subMenu"
+	         	label="Simple BPMN Executor"
+	         	path="additions">
+	         	<separator name="group1"/>
+	      </menu>
+		  <action
+		        class="de.fhdw.bpm.simplebpmnexecutor.action.contribution.SimpleExecutorViewActionDelegate"
+		        icon="icons/red_dot.gif"
+		        id="de.fhdw.bpm.simplebpmnexecutor.action.contribution.navigator.action1"
+		        label="execute"
+		        menubarPath="de.fhdw.bpm.simplebpmnexecutor.action.contribution.navigator.subMenu/group1">
+		  </action>
+	   </objectContribution> 
+	   
+	</extension>
+</plugin>
