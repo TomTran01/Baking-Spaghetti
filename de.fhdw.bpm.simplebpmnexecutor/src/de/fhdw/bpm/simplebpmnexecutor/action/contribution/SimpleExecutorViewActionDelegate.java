@@ -25,31 +25,27 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 
 	@Override
 	public void run(IAction action) {
-		IStructuredSelection structuredSelection = (IStructuredSelection) PlatformUI
-				.getWorkbench().getActiveWorkbenchWindow()
-				.getSelectionService().getSelection();
+		IStructuredSelection structuredSelection = (IStructuredSelection) PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getSelectionService().getSelection();
 		final IFile file = (IFile) structuredSelection.getFirstElement();
-		
-		
+
 		final ResourceSet resourceSet = new ResourceSetImpl();
-		
-	    resourceSet.getURIConverter().getURIMap().putAll(EcorePlugin.computePlatformURIMap(true));
+
+		resourceSet.getURIConverter().getURIMap().putAll(EcorePlugin.computePlatformURIMap(true));
 
 		final Resource bpmnModelResource = resourceSet
-				.getResource(URI.createPlatformResourceURI(file.getFullPath()
-						.toString(), true), true);
+				.getResource(URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
 
-		
-		final Bpmn2ModelerDocumentRootImpl bpmn2ModelerDocumentRootImpl = (Bpmn2ModelerDocumentRootImpl) bpmnModelResource
-				.getContents().get(0);
+		final Bpmn2ModelerDocumentRootImpl bpmn2ModelerDocumentRootImpl = 
+				(Bpmn2ModelerDocumentRootImpl) bpmnModelResource.getContents().get(0);
 
 		final FeatureMap featureMap = bpmn2ModelerDocumentRootImpl.getMixed();
 
 		org.eclipse.bpmn2.Process process = null;
-		
+
 		for (FeatureMap.Entry entry : featureMap) {
 			if (entry.getValue() instanceof Definitions) {
-				List<RootElement> rootElements = ((Definitions)entry.getValue()).getRootElements();
+				List<RootElement> rootElements = ((Definitions) entry.getValue()).getRootElements();
 				for (RootElement rootElement : rootElements) {
 					if (rootElement instanceof org.eclipse.bpmn2.Process) {
 						process = (org.eclipse.bpmn2.Process) rootElement;
@@ -60,17 +56,11 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 
 		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (process == null) {
-			MessageDialog.openError(
-					window.getShell(),
-					"Simple BPMN Executor",
-					"Found no process model.");
-			
+			MessageDialog.openError(window.getShell(), "Simple BPMN Executor", "Found no process model.");
 			return;
 		}
-			
-		MessageDialog.openInformation(
-				window.getShell(),
-				"Simple BPMN Executor",
+
+		MessageDialog.openInformation(window.getShell(), "Simple BPMN Executor",
 				"Found a process model: " + process.getName());
 
 	}
@@ -78,15 +68,13 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 		// TODO Auto-generated method stub
-		
+
 	}
-
-
 
 }
