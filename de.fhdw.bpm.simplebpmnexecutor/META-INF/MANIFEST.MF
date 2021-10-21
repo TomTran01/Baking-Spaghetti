@@ -10,4 +10,4 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.bpmn2;bundle-version="1.5.1",
  org.eclipse.bpmn2.modeler.core;bundle-version="1.5.2"
 Automatic-Module-Name: de.fhdw.bpm.simplebpmnexecutor
-Bundle-RequiredExecutionEnvironment: JavaSE-14
+Bundle-RequiredExecutionEnvironment: JavaSE-11

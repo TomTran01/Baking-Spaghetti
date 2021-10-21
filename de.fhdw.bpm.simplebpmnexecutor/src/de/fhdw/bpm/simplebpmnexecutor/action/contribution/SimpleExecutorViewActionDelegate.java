@@ -1,9 +1,12 @@
 package de.fhdw.bpm.simplebpmnexecutor.action.contribution;
 
+import java.lang.ProcessBuilder.Redirect.Type;
+import java.nio.file.DirectoryStream.Filter;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.eclipse.bpmn2.Definitions;
-import org.eclipse.bpmn2.RootElement;
+import org.eclipse.bpmn2.*;
+import org.eclipse.bpmn2.Process;
 import org.eclipse.bpmn2.modeler.core.model.Bpmn2ModelerFactory.Bpmn2ModelerDocumentRootImpl;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.emf.common.util.URI;
@@ -47,9 +50,15 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 			if (entry.getValue() instanceof Definitions) {
 				List<RootElement> rootElements = ((Definitions) entry.getValue()).getRootElements();
 				for (RootElement rootElement : rootElements) {
-					if (rootElement instanceof org.eclipse.bpmn2.Process) {
-						process = (org.eclipse.bpmn2.Process) rootElement;
-					}
+					System.out.println("###### LET'S GO! ######");
+					
+					if (rootElement instanceof Process) {
+						process = (Process) rootElement;	
+						
+						List<Event> events = this.collectEvents(process);
+						
+						System.out.println(events.size());
+					}					
 				}
 			}
 		}
@@ -75,6 +84,32 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	/**
+	 * Collects all Events from process.
+	 * @param process Process, which Events shall get collected.
+	 * @return List of Events (List<Event>).
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Event> collectEvents(Process process) {
+		return (List<Event>)(Object)process
+				.getFlowElements()
+				.stream()
+				.filter(
+						e -> e instanceof Event
+				)
+				.collect(Collectors.toList());
+	}
+	
+	private <T extends FlowElement> List<T> collect(Process process){
+		return (List<T>)(Object)process
+				.getFlowElements()
+				.stream()
+				.filter(
+						e -> e instanceof FlowElement
+				)
+				.collect(Collectors.toList());
 	}
 
 }
