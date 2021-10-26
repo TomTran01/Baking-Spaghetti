@@ -85,7 +85,7 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 	@Override
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 		// TODO Auto-generated method stub
-
+		// Test von Tom
 	}
 	
 	/**
