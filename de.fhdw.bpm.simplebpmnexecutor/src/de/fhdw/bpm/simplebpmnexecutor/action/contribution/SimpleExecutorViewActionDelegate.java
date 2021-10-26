@@ -102,14 +102,6 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 				.collect(Collectors.toList());
 	}
 	
-	private <T extends FlowElement> List<T> collect(Process process){
-		return (List<T>)(Object)process
-				.getFlowElements()
-				.stream()
-				.filter(
-						e -> e instanceof FlowElement
-				)
-				.collect(Collectors.toList());
-	}
+	
 
 }
