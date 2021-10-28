@@ -72,122 +72,114 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 				"Found a process model: " + process.getName());
 
 	}
-	
-	
 
-	// Runs Process from start to end.
+	/**
+	 * Runs the BPMN-Process from Start (StartEvent) to End (EndEvent)
+	 * @param process The Process, which shall be run.
+	 */
 	private void runProcess(Process process) {
 		System.out.println("-----------------------BEGIN--------------------------");
 		List<SequenceFlow> tokens = new ArrayList<>();
 		List<FlowNode> active = new ArrayList<>();
 		FlowNode current = null;
 		List<StartEvent> startevents = collectStartEvents(process);
-		
+
 		for (StartEvent start : startevents) {
 			active.add(start);
-			
 			do {
-				
 				current = active.get(0);
-				
-				List<SequenceFlow> incomings = current.getIncoming();
-				List<SequenceFlow> outgoings = current.getOutgoing();
-				// Current aus der Aktiv-Liste entfernen
 				active.remove(current);
-				
-				if(current instanceof Activity) {
-					
-					tokens.removeAll(incomings);
-					addTokensToAllOutgoingFlows(tokens, current);
-					addNextActives(active, current);
-					printCurrentNode(current);
-					
-					
-				} else if (current instanceof ParallelGateway) {
-					
-					if(tokens.containsAll(incomings)) {
-						tokens.removeAll(incomings);
-						addTokensToAllOutgoingFlows(tokens, current);
-						addNextActives(active, current);
-						printCurrentNode(current);
-					}
-					
-				} else if (current instanceof ExclusiveGateway ) {
-						
-					List<SequenceFlow> tokenFlows = incomings.stream().filter(flow -> tokens.contains(flow)).collect(Collectors.toList());
-					
-					for (SequenceFlow flow : tokenFlows) {
-						tokens.remove(flow);
-						Integer rand = new Random().nextInt(outgoings.size());
-						tokens.add(outgoings.get(rand));
-						active.add(outgoings.get(rand).getTargetRef());
-						printCurrentNode(current);	
-					}
-					
-					
-				} else if (current instanceof EndEvent) {
-					tokens.removeAll(incomings);
-					printCurrentNode(current);
-					
-				} else if (current instanceof StartEvent) {
-					// Alle nachfolgenden Flows mit Token versehen
-					addTokensToAllOutgoingFlows(tokens, current);
-					// Alle nachfolgenden FlowNodes als Aktiv setzen
-					addNextActives(active, current);
-					// Ausgabe
-					printCurrentNode(current);
-				} else if ( current instanceof IntermediateThrowEvent) {
-					
-						tokens.removeAll(incomings);
-						addTokensToAllOutgoingFlows(tokens, current);
-						addNextActives(active, current);
-						printCurrentNode(current);
-						
-				}
-				
+				trigger(tokens, active, current);
 			} while (!(current instanceof EndEvent));
-			
+
 			System.out.println("------------------------END---------------------------------");
-			
+
 		}
-		
-		
-		
 
 	}
 
+	/**
+	 * Triggers the current FlowNode if possible.
+	 * @param tokens List of all SequenceFlow elements, which currently have a Token.
+	 * @param active List of all FlowNodes, which shall get triggered next.
+	 * @param current Current FlowNode, which shall get triggered.
+	 */
+	private void trigger(List<SequenceFlow> tokens, List<FlowNode> active, FlowNode current) {
+		
+		List<SequenceFlow> incomings = current.getIncoming();
+		
+		if (current instanceof Activity) {
+			triggerDefault(tokens, active, current);
+		} else if (current instanceof ParallelGateway) {
+			if (tokens.containsAll(incomings)) {
+				triggerDefault(tokens, active, current);
+			}
+		} else if (current instanceof ExclusiveGateway) {
+			triggerXOR(tokens, active, current);
+		} else if (current instanceof EndEvent) {
+			triggerDefault(tokens, active, current);
+		} else if (current instanceof StartEvent) {
+			triggerDefault(tokens, active, current);
+		} else if (current instanceof IntermediateThrowEvent) {
+			triggerDefault(tokens, active, current);
+		}
+	}
 
-	
-	
-	
+	/**
+	 * Triggers the Action of an Exclusive-Gateway.
+	 * @param tokens List of all SequenceFlow elements, which currently have a Token.
+	 * @param active List of all FlowNodes, which shall get triggered next.
+	 * @param current Current Exclusive Gateway, which shall get triggered.
+	 */
+	private void triggerXOR(List<SequenceFlow> tokens, List<FlowNode> active, FlowNode current) {
+		List<SequenceFlow> incomings = current.getIncoming();
+		List<SequenceFlow> outgoings = current.getOutgoing();
+		List<SequenceFlow> tokenFlows = incomings.stream().filter(flow -> tokens.contains(flow))
+				.collect(Collectors.toList());
+
+		for (SequenceFlow flow : tokenFlows) {
+			tokens.remove(flow);
+			Integer rand = new Random().nextInt(outgoings.size());
+			tokens.add(outgoings.get(rand));
+			active.add(outgoings.get(rand).getTargetRef());
+			printCurrentNode(current);
+		}
+	}
+
+	/**
+	 * The default way of how FlowNodes like Events and Tasks trigger. 
+	 * All tokens of the incoming SequenceFlows of the current FlowNode will be consumed and get produced on to all outgoing SequenceFlows.
+	 * @param tokens List of all SequenceFlow elements, which currently have a Token.
+	 * @param active List of all FlowNodes, which shall get triggered next.
+	 * @param current Current FlowNode, which shall get triggered.
+	 */
+	private void triggerDefault(List<SequenceFlow> tokens, List<FlowNode> active, FlowNode current) {
+		List<SequenceFlow> incomings = current.getIncoming();
+
+		tokens.removeAll(incomings);
+		tokens.addAll(current.getOutgoing());
+		addNextActives(active, current);
+		printCurrentNode(current);
+	}
+
 	/***
-	 *  Fügt alle current nachfolgenden FlowNodes der aktiven Liste hinzu.
-	 * @param active
-	 * @param current
+	 * Adds all directly following FlowNodes of the current FlowNode to the Active-List. 
+	 * 
+	 * @param active List of all FlowNodes, which shall get triggered next
+	 * @param current Current FlowNode, which shall get triggered.
 	 */
 	private void addNextActives(List<FlowNode> active, FlowNode current) {
-		current.getOutgoing().stream().forEach( flow -> active.add(flow.getTargetRef()));
+		current.getOutgoing().stream().forEach(flow -> active.add(flow.getTargetRef()));
 	}
 
-
 	/***
-	 *  Fügt alle von current ausgehenden SequenceFlows der Token-Liste hinzu.
-	 * @param tokens
-	 * @param current
-	 */
-	private void addTokensToAllOutgoingFlows(List<SequenceFlow> tokens, FlowNode current) {
-		tokens.addAll(current.getOutgoing().stream().collect(Collectors.toList()));
-	}
-	
-	/***
-	 *  Gibt current auf der Konsole aus.
-	 * @param current
+	 * Prints the current FlowNode onto the console.
+	 * 
+	 * @param current FlowNode, which shall get printed onto the console.
 	 */
 	private void printCurrentNode(FlowNode current) {
-		System.out.println("["+ " ID: "+ current.getId() + " " + current.getName() + "]" + " wurde ausgeführt.");
+		System.out.println("[" + " ID: " + current.getId() + " " + current.getName() + "]" + " got executed.");
 	}
-
-	
 
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
@@ -199,18 +191,6 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 		// TODO Auto-generated method stub
 	}
 
-	/**
-	 * Collects all Events from process.
-	 * 
-	 * @param process Process, which Events shall get collected.
-	 * @return List of Events (List<Event>).
-	 */
-	@SuppressWarnings("unchecked")
-	private List<Event> collectEvents(Process process) {
-		return (List<Event>) (Object) process.getFlowElements().stream().filter(e -> e instanceof Event)
-				.collect(Collectors.toList());
-	}
-	
 	/**
 	 * Collects all StartEvents from process.
 	 * 
