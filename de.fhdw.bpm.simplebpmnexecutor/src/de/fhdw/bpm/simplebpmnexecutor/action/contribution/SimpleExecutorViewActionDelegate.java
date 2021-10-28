@@ -2,6 +2,7 @@ package de.fhdw.bpm.simplebpmnexecutor.action.contribution;
 
 import java.lang.ProcessBuilder.Redirect.Type;
 import java.nio.file.DirectoryStream.Filter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +40,8 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 		final Resource bpmnModelResource = resourceSet
 				.getResource(URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
 
-		final Bpmn2ModelerDocumentRootImpl bpmn2ModelerDocumentRootImpl = 
-				(Bpmn2ModelerDocumentRootImpl) bpmnModelResource.getContents().get(0);
+		final Bpmn2ModelerDocumentRootImpl bpmn2ModelerDocumentRootImpl = (Bpmn2ModelerDocumentRootImpl) bpmnModelResource
+				.getContents().get(0);
 
 		final FeatureMap featureMap = bpmn2ModelerDocumentRootImpl.getMixed();
 
@@ -50,18 +51,15 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 			if (entry.getValue() instanceof Definitions) {
 				List<RootElement> rootElements = ((Definitions) entry.getValue()).getRootElements();
 				for (RootElement rootElement : rootElements) {
-					System.out.println("###### LET'S GO! ######");
-					
 					if (rootElement instanceof Process) {
-						process = (Process) rootElement;	
-						
-						List<Event> events = this.collectEvents(process);
-						
-						System.out.println(events.size());
-					}					
+						process = (Process) rootElement;
+					}
 				}
 			}
 		}
+
+		// Implementation
+		runProcess(process);
 
 		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (process == null) {
@@ -73,37 +71,53 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 				"Found a process model: " + process.getName());
 
 	}
-
-	//HILFE
 	
+	
+
+	// Runs Process from start to end.
+	private void runProcess(Process process) {
+		List<SequenceFlow> tokens = new ArrayList<>();
+		List<FlowNode> active = new ArrayList<>();
+		FlowNode current = null;
+		
+
+	}
+	
+	
+	
+
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 		// TODO Auto-generated method stub
-		// Test von Tom
 	}
-	
+
 	/**
 	 * Collects all Events from process.
+	 * 
 	 * @param process Process, which Events shall get collected.
 	 * @return List of Events (List<Event>).
 	 */
 	@SuppressWarnings("unchecked")
 	private List<Event> collectEvents(Process process) {
-		return (List<Event>)(Object)process
-				.getFlowElements()
-				.stream()
-				.filter(
-						e -> e instanceof Event
-				)
+		return (List<Event>) (Object) process.getFlowElements().stream().filter(e -> e instanceof Event)
 				.collect(Collectors.toList());
 	}
 	
-	
+	/**
+	 * Collects all StartEvents from process.
+	 * 
+	 * @param process Process, which Events shall get collected.
+	 * @return List of StartEvents (List<StartEvent>).
+	 */
+	@SuppressWarnings("unchecked")
+	private List<StartEvent> collectStartEvents(Process process) {
+		return (List<StartEvent>) (Object) process.getFlowElements().stream().filter(e -> e instanceof StartEvent)
+				.collect(Collectors.toList());
+	}
 
 }
