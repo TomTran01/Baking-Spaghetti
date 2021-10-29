@@ -105,24 +105,16 @@ public class SimpleExecutorViewActionDelegate implements IObjectActionDelegate {
 	 * @param current Current FlowNode, which shall get triggered.
 	 */
 	private void trigger(List<SequenceFlow> tokens, List<FlowNode> active, FlowNode current) {
-		
 		List<SequenceFlow> incomings = current.getIncoming();
 		
-		if (current instanceof Activity) {
+		if (current instanceof Activity || current instanceof StartEvent || 
+			current instanceof EndEvent || current instanceof IntermediateThrowEvent ||
+			current instanceof ParallelGateway && tokens.containsAll(incomings)) {
 			triggerDefault(tokens, active, current);
-		} else if (current instanceof ParallelGateway) {
-			if (tokens.containsAll(incomings)) {
-				triggerDefault(tokens, active, current);
-			}
 		} else if (current instanceof ExclusiveGateway) {
 			triggerXOR(tokens, active, current);
-		} else if (current instanceof EndEvent) {
-			triggerDefault(tokens, active, current);
-		} else if (current instanceof StartEvent) {
-			triggerDefault(tokens, active, current);
-		} else if (current instanceof IntermediateThrowEvent) {
-			triggerDefault(tokens, active, current);
 		}
+		
 	}
 
 	/**
